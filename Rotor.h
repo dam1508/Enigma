@@ -29,6 +29,7 @@ class Rotor
     void print();
 
     Rotor(string set = "Settings I.txt", string inp = "input.txt", string hlp = "help.txt", string out = "output.txt");
+    ~Rotor();
 
 };
 
@@ -138,6 +139,19 @@ Rotor<T>::Rotor(string set, string inp, string hlp, string out)
 :settings_file(set), input_file(inp), help_file(hlp), output_file(out)
 {
     first = NULL;
+}
+
+template <typename T>
+Rotor<T>::~Rotor()
+{
+	Rotor_Element<T> *hlp = first;
+	
+	for(unsigned int i = 0; i < size; i++) 
+	{
+		first = first->get_next();
+		delete hlp;
+		hlp = first;
+	}
 }
 
 #endif
