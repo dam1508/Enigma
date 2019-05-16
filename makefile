@@ -3,7 +3,7 @@ CFLAGS = g++ -Wall
 go: main.o
 	$(CFLAGS) main.o -o go
 
-cmp: clean go
+cmp: go
 	./go
 
 main.o: main.cpp
