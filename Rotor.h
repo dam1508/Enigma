@@ -27,6 +27,7 @@ class Rotor
     int get_size() const {return size;}
 
     Rotor(string inpset = "Set_in1.txt", string outset = "Set_out1.txt");
+    ~Rotor();
 };
 
 template <typename T>
@@ -97,5 +98,11 @@ template <typename T>
 Rotor<T>::Rotor(string inset, string outset)
 :input_settings_file(inset), output_settings_file(outset)
 {}
+
+template <typename T>
+Rotor<T>::~Rotor()
+{
+    delete [] input;
+}
 
 #endif
