@@ -1,0 +1,9 @@
+Instrukcja:
+Tresc do zakodowania wpisujemy w input.txt
+Wynik wydrukuje sie w pliku output.txt
+
+Aby uruchomić należy w terminalu wpisać komendy:
+make clean (aby upewnić się że nie ma żadnych niepotrzebnych plików)
+make cmp
+
+Potem wybieramy już tylko tryb kodowania lub dekodowania

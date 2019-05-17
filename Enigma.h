@@ -10,9 +10,13 @@ class Enigma
     string help_file;
     string output_file;
 
-    unsigned int complexity = 2;
-
     void copy(string from, string to);
+
+    int number_of_changes = 0;
+    void change_coding();
+
+    Rotor<T> R1;
+    Rotor<T> R2;
 
     public:
 
@@ -20,7 +24,7 @@ class Enigma
 
     void enigma(bool decode = false);
 
-    Enigma(string inp = "input.txt", string hlp = "help.txt", string out = "output.txt");
+    Enigma(string inp = "input.txt", string out = "output.txt", int chngs = 0);
 };
 
 template <typename T>
@@ -35,42 +39,51 @@ void Enigma<T>::copy(string from, string to)
 }
 
 template <typename T>
+void Enigma<T>::change_coding()
+{
+    R1.rotation();
+    if(number_of_changes % R1.get_size() == R1.get_size() - 1) R2.rotation();
+
+    number_of_changes++;
+}
+
+template <typename T>
 void Enigma<T>::enigma(bool decode)
 {
     copy(input_file, help_file);
 
+    ifstream inpfile(input_file);
+    ofstream outfile(output_file);
+
+    T data;
+
+    R1.create("Set_in1.txt", "Set_out1.txt");
+    R2.create("Set_in2.txt", "Set_out2.txt");
+
     if(decode)
     {
-       for(unsigned int i = complexity; i > 0; i--)
-        {
-            Rotor<T> Rot("Settings"+to_string(i)+".txt");
-            Rot.create();
-            Rot.print();
-            Rot.encode(decode);
-
-            copy(output_file, help_file);
-        }
+       while(inpfile>>data)
+       {    
+            outfile<<R1.translate(R2.translate(data, decode), decode);
+            change_coding();
+       }
     }
-    else for(unsigned int i = 1; i <= complexity; i++)
+    else while(inpfile>>data)
     {
-        Rotor<T> Rot("Settings"+to_string(i)+".txt");
-        Rot.create();
-        Rot.print();
-        Rot.encode(decode);
-
-        copy(output_file, help_file);
+        outfile<<R2.translate(R1.translate(data));
+        change_coding();
     }
+    inpfile.close();
+    outfile.close();
 }
 
 template <typename T>
 void Enigma<T>::menu()
 {
-    cout<<"Jak zlozone ma byc kodowanie?"<<endl;
-    cin>>complexity;
-
     int choice;
     bool decode = false;
 
+    system("clear");
     cout<<"Tryb :"<<endl<<"1. Kodowanie"<<endl<<"2. Dekodowanie"<<endl;
     cin>>choice;
 
@@ -92,8 +105,8 @@ void Enigma<T>::menu()
 }
 
 template <typename T>
-Enigma<T>::Enigma(string inp, string hlp, string out)
-:input_file(inp), help_file(hlp), output_file(out)
+Enigma<T>::Enigma(string inp, string out, int chngs)
+:input_file(inp), output_file(out), number_of_changes(chngs)
 {}
 
 #endif

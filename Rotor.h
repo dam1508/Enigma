@@ -1,157 +1,101 @@
 #ifndef ROTOR_H
 #define ROTOR_H
 
-#include "Rotor_Element.h"
-#include <string>
-#include <fstream>
-
-using namespace std;
+#include "Rotor_Output.h"
 
 template <typename T>
 class Rotor
 {
-    Rotor_Element<T> *first;
-    unsigned int size = 0;                      //wielkosc bebenka
-    string settings_file;                       //pliki
-    string input_file;
-    string help_file;
-    string output_file;
+    string input_settings_file;
+    string output_settings_file;
 
-    bool find(T data, bool decode = false);
-    void add_element(T inp, T out);
+    T *input;
+    Rotor_Output<T> output;
 
-    T translate(T input, bool decode = false);
+    int size;
+
+    void set_input();
+    void set_output();
 
     public:
 
-    void create();
-    void encode(bool decode = false);
-    void print();
+    T translate(T input, bool decode = false);
 
-    Rotor(string set = "Settings I.txt", string inp = "input.txt", string hlp = "help.txt", string out = "output.txt");
-    ~Rotor();
+    void create(string in, string ou);
+    void rotation();
 
+    int get_size() const {return size;}
+
+    Rotor(string inpset = "Set_in1.txt", string outset = "Set_out1.txt");
 };
 
 template <typename T>
-bool Rotor<T>::find(T data, bool decode)
+void Rotor<T>::set_input()
 {
-    for(unsigned int i = 0; i < size; i++)
+    ifstream file(input_settings_file);
+
+    size = 0;
+    T data;
+
+    while(file>>data) size++;
+
+    input = new T[size];
+
+    file.close();
+
+    file.open(input_settings_file);
+
+    for(int i = 0; i<size; i++)
     {
-        if(decode && first->get_out() == data) return true;
-        else if(!decode && first->get_inp() == data) return true;
-        else first = first->get_next();
+        file>>data;
+        input[i] = data;
     }
-    cout<<"Can't find "<<data<<endl;
-    return false;
-}
 
-template <typename T>
-void Rotor<T>::add_element(T inp, T out)
-{
-    Rotor_Element<T> *new_element;
-    new_element = new Rotor_Element<T>(inp, out);
-
-    if(size == 0)
-    {
-        first = new_element;
-    }else{
-
-        Rotor_Element<T> *nxt = first->get_next();
-
-        first->set_next(new_element);
-        if(size!=1) new_element->set_next(nxt);
-        else new_element->set_next(first);
-        first = new_element;
-    }
-    size++;
-}
-
-template <typename T>
-void Rotor<T>::create()
-{
-    ifstream file(settings_file);
-    T inp_data;
-    T out_data;
-
-    while(file>>inp_data)
-    {
-        if(file.eof()) break;
-        if(inp_data == ' ' || inp_data == '\n') continue;
-
-        while(file>>out_data)
-        {
-            if(out_data == ' ' || out_data == '\n') continue;
-            else break ;
-        }
-        add_element(inp_data, out_data);
-    }
     file.close();
 }
 
 template <typename T>
-void Rotor<T>::print()
+void Rotor<T>::set_output()
 {
-    Rotor_Element<T> *tmp = first;
+    output.set_settings(output_settings_file);
+    output.create_output();
+}
 
-    cout<<"Instrukcja: "<<endl;
+template <typename T>
+void Rotor<T>::create(string in, string ou)
+{
+    input_settings_file = in;
+    output_settings_file = ou;
+    set_input();
+    set_output();
+}
 
-    for(unsigned int i = 0; i < size ; i++)
+template <typename T>
+void Rotor<T>::rotation()
+{
+    output.rotate();
+}
+
+template <typename T>
+T Rotor<T>::translate(T inp, bool decode)
+{
+    int id = 1;
+
+    if(decode)
     {
-        cout<<tmp->get_inp()<<"->"<<tmp->get_out()<<"  ";
-        tmp = tmp->get_next();
+        return input[output.find_T(inp)-1];
     }
-    cout<<endl;
-}
-
-template <typename T>
-T Rotor<T>::translate(T input, bool decode)
-{
-    if(find(input, decode))
+    else for(int i = 0; i<size ; i++)
     {
-        if(decode) return first->get_inp();
-        else return first->get_out();
-    }else return input;
-}
-
-template <typename T>
-void Rotor<T>::encode(bool decode)
-{
-    ifstream inpfile(help_file);
-    ofstream outfile(output_file);
-
-    T help;
-
-    while(inpfile>>help)
-    {
-        if(inpfile.eof()) break;
-        else
-        {
-            outfile<<translate(help, decode);
-        }
+        if(input[i] == inp) break;
+        id++;
     }
-    inpfile.close();
-    outfile.close();
+    return output.find_id(id);
 }
 
 template <typename T>
-Rotor<T>::Rotor(string set, string inp, string hlp, string out)
-:settings_file(set), input_file(inp), help_file(hlp), output_file(out)
-{
-    first = NULL;
-}
-
-template <typename T>
-Rotor<T>::~Rotor()
-{
-	Rotor_Element<T> *hlp = first;
-	
-	for(unsigned int i = 0; i < size; i++) 
-	{
-		first = first->get_next();
-		delete hlp;
-		hlp = first;
-	}
-}
+Rotor<T>::Rotor(string inset, string outset)
+:input_settings_file(inset), output_settings_file(outset)
+{}
 
 #endif
